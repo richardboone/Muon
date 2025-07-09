@@ -32,12 +32,14 @@ def zeropower_via_newtonschulz5(G, steps: int):
 
 
 def muon_update(grad, momentum, beta=0.95, ns_steps=5, nesterov=True):
+    original_shape = grad.shape
     momentum.lerp_(grad, 1 - beta)
     update = grad.lerp_(momentum, beta) if nesterov else momentum
     if update.ndim == 4: # for the case of conv filters
         update = update.view(len(update), -1)
     update = zeropower_via_newtonschulz5(update, steps=ns_steps)
     update *= max(1, grad.size(-2) / grad.size(-1))**0.5
+    update = update.view(original_shape)
     return update
 
 
